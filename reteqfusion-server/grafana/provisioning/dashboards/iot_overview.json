@@ -1,0 +1,520 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "uid": "reteqfusion-iot-overview",
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "title": "DHT22 Environment",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 1,
+      "title": "Live Temperature (°C)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 40 },
+              { "color": "red", "value": 60 }
+            ]
+          },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time AS \"time\", device_id AS metric, value FROM telemetry WHERE sensor_type='dht22' AND reading_key='temperature' AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Live Humidity (%)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time AS \"time\", device_id AS metric, value FROM telemetry WHERE sensor_type='dht22' AND reading_key='humidity' AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Dew Point (°C)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time AS \"time\", device_id AS metric, dew_point AS value FROM telemetry WHERE sensor_type='dht22' AND reading_key='temperature' AND dew_point IS NOT NULL AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Comfort Index",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "comfortable": { "color": "green",  "index": 0, "text": "comfortable" } } },
+            { "type": "value", "options": { "hot":         { "color": "red",    "index": 1, "text": "hot" } } },
+            { "type": "value", "options": { "cold":        { "color": "blue",   "index": 2, "text": "cold" } } },
+            { "type": "value", "options": { "humid":       { "color": "orange", "index": 3, "text": "humid" } } },
+            { "type": "value", "options": { "dry":         { "color": "yellow", "index": 4, "text": "dry" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT comfort_index AS value FROM telemetry WHERE sensor_type='dht22' AND comfort_index IS NOT NULL ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "title": "MQ-2 Gas Monitor",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 101,
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 5,
+      "title": "Gas PPM — Live",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ppm",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 300  },
+              { "color": "orange", "value": 1000 },
+              { "color": "red",    "value": 3000 }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "thresholdsStyle": { "mode": "area" }
+          }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time AS \"time\", device_id AS metric, value FROM telemetry WHERE sensor_type='mq2' AND reading_key='gas_ppm' AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Gas Hazard Level",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 9, "w": 6, "x": 12, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "safe":   { "color": "green",  "index": 0, "text": "SAFE"   } } },
+            { "type": "value", "options": { "low":    { "color": "yellow", "index": 1, "text": "LOW"    } } },
+            { "type": "value", "options": { "alarm":  { "color": "orange", "index": 2, "text": "ALARM"  } } },
+            { "type": "value", "options": { "hazard": { "color": "red",    "index": 3, "text": "HAZARD" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT hazard_level AS value FROM telemetry WHERE sensor_type='mq2' AND hazard_level IS NOT NULL ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Rs/R0 Ratio",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 9, "w": 6, "x": 18, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time AS \"time\", device_id AS metric, value FROM telemetry WHERE sensor_type='mq2' AND reading_key='rs_r0_ratio' AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Smoke Detected",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 25 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "0": { "color": "green", "index": 0, "text": "NO" } } },
+            { "type": "value", "options": { "1": { "color": "red",   "index": 1, "text": "YES" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red",   "value": 1 }
+            ]
+          },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT value FROM telemetry WHERE sensor_type='mq2' AND reading_key='smoke_detected' ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "title": "Device & System Health",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+      "id": 102,
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 9,
+      "title": "Device Status",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "displayMode": "auto", "filterable": true }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "online":  { "color": "green", "index": 0, "text": "online" } } },
+                  { "type": "value", "options": { "offline": { "color": "red",   "index": 1, "text": "offline" } } }
+                ]
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT device_id, status, last_seen, rssi, fw_version FROM device_status ORDER BY device_id"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Message Rate (per minute)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 8, "x": 12, "y": 32 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "msg/min",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time_bucket('1 minute', time) AS \"time\", 'messages' AS metric, COUNT(*) AS value FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "DLQ Size",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 32 },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red",   "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT COUNT(*) AS value FROM dlq"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Gas Alerts Today",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 40 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red",    "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT COUNT(*) AS value FROM gas_alerts WHERE time >= date_trunc('day', NOW())"
+        }
+      ]
+    },
+    {
+      "title": "Anomaly Feed",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 },
+      "id": 103,
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 13,
+      "title": "Recent Anomalies",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 10, "w": 16, "x": 0, "y": 47 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "displayMode": "auto", "filterable": true }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "anomaly_type" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "HAZARD_ALARM":  { "color": "red",    "index": 0, "text": "HAZARD_ALARM" } } },
+                  { "type": "value", "options": { "SMOKE_ALARM":   { "color": "orange", "index": 1, "text": "SMOKE_ALARM" } } },
+                  { "type": "value", "options": { "HEAT_ALERT":    { "color": "red",    "index": 2, "text": "HEAT_ALERT" } } },
+                  { "type": "value", "options": { "HIGH_HUMIDITY": { "color": "orange", "index": 3, "text": "HIGH_HUMIDITY" } } },
+                  { "type": "value", "options": { "SPIKE":         { "color": "yellow", "index": 4, "text": "SPIKE" } } },
+                  { "type": "value", "options": { "DROPOUT":       { "color": "purple", "index": 5, "text": "DROPOUT" } } },
+                  { "type": "value", "options": { "STUCK_SENSOR":  { "color": "blue",   "index": 6, "text": "STUCK_SENSOR" } } },
+                  { "type": "value", "options": { "DRIFT":         { "color": "blue",   "index": 7, "text": "DRIFT" } } }
+                ]
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT time, device_id, sensor_type, anomaly_type, reading_value, confidence, description FROM anomalies ORDER BY time DESC LIMIT 20"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Anomaly Types Breakdown (24h)",
+      "type": "piechart",
+      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 47 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "rawSql": "SELECT anomaly_type AS metric, COUNT(*) AS value FROM anomalies WHERE time >= NOW() - INTERVAL '24 hours' GROUP BY anomaly_type ORDER BY value DESC"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["iot", "hackathon", "reteqfusion"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"] },
+  "timezone": "",
+  "title": "ReTeqFusion — IoT Industrial Monitor",
+  "version": 1,
+  "weekStart": ""
+}
