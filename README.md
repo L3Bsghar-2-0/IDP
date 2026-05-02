@@ -1,5 +1,8 @@
 # ReTeqFusion IoT Telemetry Platform
 
+
+### github : https://github.com/L3Bsghar-2-0/IDP/tree/dev
+
 > End-to-end Industrial IoT sensor telemetry pipeline: collect multi-protocol sensor data on ESP32 edge devices, aggregate and validate in the cloud, detect anomalies in real time, and visualize via Grafana dashboards.
 
 ## 📋 Table of Contents
