@@ -1,0 +1,52 @@
+simulation:
+  speed_multiplier: 10.0
+  random_failures: false
+  aggregate_window_s: 1.0
+
+mqtt:
+  host: null
+  port: null
+  use_tls: true
+
+devices:
+  - device_id: "floor_01"
+    site: "tunis_factory"
+    tenant: "hackathon"
+    sensors:
+      - type: "TemperatureSensor"
+        sensor_id: "temp_01"
+        sample_rate_hz: 0.5
+        noise_factor: 1.0
+        enabled: true
+      - type: "PowerMeterSensor"
+        sensor_id: "power_main"
+        sample_rate_hz: 1.0
+        noise_factor: 1.0
+        enabled: true
+      - type: "CO2Sensor"
+        sensor_id: "co2_main"
+        sample_rate_hz: 0.2
+        noise_factor: 1.0
+        enabled: true
+    failures:
+      - sensor_id: "temp_01"
+        type: "stuck"
+        start_offset_s: 300
+        duration_s: 60
+        intensity: 1.0
+
+  - device_id: "floor_02"
+    site: "tunis_factory"
+    tenant: "hackathon"
+    sensors:
+      - type: "VibrationSensor"
+        sensor_id: "vibe_pump"
+        sample_rate_hz: 50.0
+        noise_factor: 1.0
+        enabled: true
+      - type: "EnergyMeter"
+        sensor_id: "energy_invoice"
+        sample_rate_hz: 1.0
+        noise_factor: 1.0
+        enabled: true
+    failures: []
