@@ -3,10 +3,13 @@
 Firmware for an ESP32-WROOM-32 dev board that samples a DHT22
 temperature/humidity sensor and an MQ2 gas sensor, validates and aggregates
 the readings, and publishes JSON telemetry over TLS-secured MQTT to a
-HiveMQ Cloud broker. Includes a LittleFS-backed offline ring buffer for
-network outages, a NimBLE GATT service for Wi-Fi provisioning and live
-monitoring from a phone, and a 5-minute diagnostics topic for fleet
-health visibility.
+HiveMQ Cloud broker. Features:
+
+- LittleFS-backed NDJSON ring buffer for reliable offline storage and replay
+- NimBLE GATT service for Wi‑Fi provisioning and live sensor/status reads
+- TLS-protected MQTT telemetry and diagnostics, with retained LWT status
+- OTA state machine for safe partitioned updates (HMAC verification planned)
+- Periodic diagnostics for fleet health visibility
 
 ---
 
@@ -34,6 +37,10 @@ pio device monitor       # 115200 baud
 LittleFS is mounted from a partition created by the toolchain on first
 boot — no separate `pio run -t uploadfs` step is required.
 
+Note: PlatformIO in this repo pins `espressif32 @ ~6.7.0` (Arduino-ESP32
+2.0.x). See `platformio.ini` for `monitor_speed`, `upload_speed`, and
+`board_build.filesystem = littlefs` settings.
+
 ---
 
 ## Configuration
@@ -56,6 +63,10 @@ clients (e.g. dashboards in the server layer).
 If you'd rather not commit credentials, create `src/config.local.h`
 (gitignored) with your overrides and `#include "config.local.h"` at the
 top of `config.h`.
+
+For convenience the repository contains `src/config.local.h.example`
+which you can copy to `src/config.local.h` and edit locally. Do NOT
+commit real credentials or private keys.
 
 ---
 
@@ -146,6 +157,142 @@ over the compile-time defaults.
 
 The device advertises continuously so the BLE channel is always
 available, even when Wi-Fi is healthy.
+
+BLE provisioning write payload example:
+
+```
+{"ssid":"MyWifi","password":"MyWifiPass"}
+```
+
+On successful write the device persists credentials to NVS and attempts
+immediate reconnect. The device's serial log shows `[NET] connecting...`.
+
+--
+
+**Architecture (high level)**
+
+- Sensors: `sensor_dht22` (DHT22 on GPIO4) and `sensor_mq2` (MQ2 analog
+   via ADC GPIO34). Each module implements `begin()`/`tick()` and exposes
+   latest values to the BLE service.
+- Local buffer: `buffer` stores NDJSON telemetry entries in LittleFS when
+   MQTT is unavailable; `drain()` replays entries on connect.
+- Connectivity: `netmgr` manages Wi‑Fi, persists NVS credentials written
+   from BLE provisioning, and performs NTP sync for TLS validation.
+- MQTT layer: `mqttmgr` wraps `WiFiClientSecure` + `PubSubClient` and
+   handles LWT, publish buffering, and drain-on-connect. (See Known Gaps
+   below regarding command subscriptions.)
+- OTA: `ota` contains a partitioned-update state machine and HMAC
+   verification scaffolding; see OTA section for expected message schema.
+
+Data flow summary:
+
+- Sensors -> `mqttmgr::publish(topic,payload)` -> (connected) -> Broker
+   OR -> (disconnected) -> `buffer::append()` (LittleFS)
+- BLE phone -> provisioning write -> `netmgr::setCredentials()` -> NVS
+   -> Wi‑Fi reconnect
+- On MQTT connect -> `mqttmgr` publishes retained `status:online` and
+   calls `buffer::drain()` to replay stored messages oldest-first.
+
+--
+
+**OTA (Over-The-Air) — expected behavior and payloads**
+
+This firmware implements a safe partitioned OTA flow. The device
+supports two update triggers:
+
+1. Polling an HTTP endpoint (controlled by `OTA_POLLING_INTERVAL_SECONDS`).
+2. Push command via MQTT (recommended for production).
+
+Current code notes: the README documents the intended MQTT command topic
+but the codebase currently lacks a subscription hookup to forward incoming
+MQTT payloads into `ota::onUpdateCommand()`; this is a documented TODO.
+
+Recommended OTA command topic (example):
+
+```
+tenants/demo/sites/lab/devices/{client_id}/commands/ota/update
+```
+
+Expected JSON payload schema (push):
+
+```
+{
+   "url": "https://example.com/firmware/esp32-edge-1.2.0.bin",
+   "version": "1.2.0",
+   "signature": "<hex-encoded-hmac-sha256>",
+   "chunk_size": 4096
+}
+```
+
+- `url` (string): HTTPS URL where the firmware binary can be downloaded.
+- `version` (string): Semantic version of the new firmware.
+- `signature` (string): Hex-encoded HMAC-SHA256 computed over the binary
+   using `OTA_SIGNATURE_KEY` (device-side) — **verification must be
+   implemented server and client-side**.
+- `chunk_size` (int, optional): preferred chunk size for streaming; the
+   firmware streams to the alternate partition in blocks and verifies HMAC
+   after complete download.
+
+Behavior on receiving an OTA command:
+
+- Validate JSON fields and `version` is newer than `FW_VERSION`.
+- Download the file to the inactive partition, streaming to avoid OOM.
+- Compute HMAC-SHA256 over the downloaded bytes and compare to
+   `signature`. If verification passes, set new partition and reboot.
+- If boot fails more than `OTA_ROLLBACK_BOOT_THRESHOLD` times, auto
+   rollback occurs.
+
+Known gap: `ota.cpp` contains HMAC scaffolding but the HMAC verification
+appears incomplete — treat OTA as experimental until verification is
+confirmed. See Developer Notes for the follow-up tasks.
+
+--
+
+**Security guidance**
+
+- Never commit `src/config.local.h` or real `OTA_SIGNATURE_KEY` to Git.
+- Prefer provisioning secrets via a secure provisioning server or
+   manufacturing step; consider using an HSM or secure element for key
+   storage on production devices.
+- If you must embed keys in firmware for prototyping, rotate them before
+   production and ensure broker ACLs limit publish scope to `tenants/...`.
+- Ensure NTP sync completes before attempting TLS connections; otherwise
+   certificate validation will fail.
+
+--
+
+**Diagnostics & Testing**
+
+Example `mosquitto_pub` to publish an OTA push (replace placeholders):
+
+```bash
+mosquitto_pub -h <broker> -p 8883 --cafile /path/to/ca.pem \
+   -u "MQTT_USERNAME" -P "MQTT_PASSWORD" \
+   -t "tenants/demo/sites/lab/devices/esp32-<client_id>/commands/ota/update" \
+   -m '{"url":"https://.../fw.bin","version":"1.2.0","signature":"..."}'
+```
+
+Simulate offline buffering by disabling Wi‑Fi on your router for 30s and
+observing `[BUF] append` and subsequent `[BUF] drain` logs after network
+restoration.
+
+--
+
+**Known gaps & TODOs**
+
+- MQTT subscriptions for backend commands (OTA push) are not wired in
+   `mqttmgr.cpp`; add `PubSubClient::setCallback()` and topic subscriptions
+   during `mqttmgr::onConnect()` to route messages to `ota::onUpdateCommand()`.
+- `ota.cpp` contains placeholder/partial HMAC verification functions
+   (`initHmac()` / `verifySignature()`) — implement full `mbedtls_md_hmac`
+   verification using `OTA_SIGNATURE_KEY`.
+- Add `src/config.local.h.example` to speed onboarding (added in this
+   commit).
+
+--
+
+The remainder of the README (Wiring table, Troubleshooting, Layout)
+remains valid — see below for the original content.
 
 ---
 

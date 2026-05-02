@@ -1,0 +1,20 @@
+// Copy this file to src/config.local.h and edit values for local testing.
+// Do NOT commit src/config.local.h to source control.
+
+#pragma once
+
+// Wi‑Fi credentials (overrides compile-time defaults in config.h)
+#define WIFI_SSID     "YourSSID"
+#define WIFI_PASSWORD "YourWifiPassword"
+
+// MQTT credentials for HiveMQ Cloud (example)
+#define MQTT_USERNAME "esp32-device"
+#define MQTT_PASSWORD "super-secret-password"
+
+// Optional client id override
+// #define CLIENT_ID_OVERRIDE "esp32-mydevice-01"
+
+// Optional: override OTA signature key for testing only
+// #define OTA_SIGNATURE_KEY "fedcba9876543210fedcba9876543210"
+
+// End of example
