@@ -1,0 +1,31 @@
+/* Dashboard grid layouts */
+
+.grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--lumi-space-md);
+}
+
+.grid-charts {
+  display: grid;
+  grid-template-columns: 60fr 40fr;
+  gap: var(--lumi-space-md);
+}
+
+.grid-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lumi-space-md);
+  padding-bottom: var(--lumi-space-xl);
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
+  .grid-kpi { grid-template-columns: repeat(2, 1fr); }
+  .grid-charts { grid-template-columns: 1fr; }
+  .grid-bottom { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .grid-kpi { grid-template-columns: 1fr; }
+}

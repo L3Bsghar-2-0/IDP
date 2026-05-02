@@ -1,0 +1,84 @@
+.feed-card {
+  background-color: var(--lumi-bg-card);
+  border: 1px solid var(--lumi-border);
+  border-radius: var(--lumi-radius);
+  padding: var(--lumi-space-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--lumi-space-md);
+}
+.feed-card__title {
+  font-size: var(--lumi-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--lumi-text-muted);
+}
+.feed-card__period {
+  font-size: var(--lumi-font-size-xs);
+  color: var(--lumi-secondary);
+}
+
+/* Feed list */
+.anomaly-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 300px;
+}
+.anomaly-list::-webkit-scrollbar { width: 4px; }
+.anomaly-list::-webkit-scrollbar-thumb { background: var(--lumi-border); border-radius: 2px; }
+
+/* Anomaly item */
+.anomaly-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: var(--lumi-space-md);
+  padding: 12px;
+  background-color: rgba(0,0,0,0.2);
+  border: 1px solid var(--lumi-border);
+  border-left: 3px solid var(--lumi-border);
+  border-radius: var(--lumi-radius);
+  align-items: center;
+  transition: background-color 0.18s;
+}
+.anomaly-item:hover { background-color: rgba(0,0,0,0.35); }
+
+.anomaly-item--critical { border-left-color: var(--lumi-danger); }
+.anomaly-item--warning  { border-left-color: var(--lumi-accent); }
+.anomaly-item--info     { border-left-color: var(--lumi-secondary); }
+
+.anomaly-item__time {
+  font-size: 12px;
+  color: var(--lumi-secondary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.anomaly-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.anomaly-item__title {
+  font-size: var(--lumi-font-size-sm);
+  font-weight: 500;
+  color: var(--lumi-text-primary);
+  line-height: 1;
+}
+.anomaly-item__desc {
+  font-size: 12px;
+  color: var(--lumi-text-muted);
+}
+.anomaly-item__value {
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

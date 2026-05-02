@@ -1,0 +1,40 @@
+/* Import design token system */
+@import './tokens/tokens.css';
+
+/* Global resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  font-family: var(--lumi-font);
+  background-color: var(--lumi-bg-app);
+  color: var(--lumi-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Global scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--lumi-bg-app); }
+::-webkit-scrollbar-thumb { background: var(--lumi-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--lumi-secondary); }
+
+/* Link reset */
+a { color: inherit; text-decoration: none; }
+
+/* Button reset */
+button { font-family: inherit; }
