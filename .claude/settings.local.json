@@ -15,7 +15,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs)",
       "Bash(echo \"  GET /docs            → $\\(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs\\)\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" 'http://localhost:8000/api/v1/sensors?limit=1')",
-      "Bash(echo \"  GET /api/v1/sensors  → $\\(curl -s -o /dev/null -w \"%{http_code}\" 'http://localhost:8000/api/v1/sensors?limit=1'\\)\")"
+      "Bash(echo \"  GET /api/v1/sensors  → $\\(curl -s -o /dev/null -w \"%{http_code}\" 'http://localhost:8000/api/v1/sensors?limit=1'\\)\")",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Win11\\\\Desktop\\\\PJ\\\\IDP\" -Recurse -Force | Where-Object {$_.FullName -notmatch '\\(node_modules|__pycache__|\\\\.git|build|dist|\\\\.next|\\\\.pytest_cache\\)'} | Select-Object -ExpandProperty FullName)",
+      "Bash(npm run *)"
     ]
   }
 }

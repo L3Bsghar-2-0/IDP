@@ -1,0 +1,39 @@
+/* ============================================================
+   LUMI DESIGN TOKENS  —  --lumi-* namespace
+   Single source of truth for all visual decisions.
+   ============================================================ */
+
+:root {
+  /* Colors */
+  --lumi-bg-app:        #0C0C0E;
+  --lumi-bg-card:       #28283A;
+  --lumi-bg-card-hover: #313145;
+  --lumi-accent:        #BBAB8C;
+  --lumi-secondary:     #776B5D;
+  --lumi-text-primary:  #F5F4F0;
+  --lumi-text-muted:    #A3A3B5;
+  --lumi-danger:        #E24B4A;
+  --lumi-success:       #1D9E75;
+  --lumi-border:        #3A3A4C;
+
+  /* Typography */
+  --lumi-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --lumi-font-size-xs:  11px;
+  --lumi-font-size-sm:  13px;
+  --lumi-font-size-md:  16px;
+  --lumi-font-size-lg:  28px;
+
+  /* Layout */
+  --lumi-sidebar-w:  240px;
+  --lumi-topbar-h:   56px;
+
+  /* Spacing */
+  --lumi-space-xs:  4px;
+  --lumi-space-sm:  8px;
+  --lumi-space-md:  16px;
+  --lumi-space-lg:  24px;
+  --lumi-space-xl:  32px;
+
+  /* Borders */
+  --lumi-radius: 4px;
+}

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumi — Industrial Energy Intelligence</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Design Tokens */
+        :root {
+            --lumi-bg-app: #0C0C0E;
+            --lumi-bg-card: #28283A;
+            --lumi-bg-card-hover: #313145;
+            --lumi-accent: #BBAB8C;
+            --lumi-secondary: #776B5D;
+            --lumi-text-primary: #F5F4F0;
+            --lumi-text-muted: #A3A3B5;
+            --lumi-danger: #E24B4A;
+            --lumi-success: #1D9E75;
+            --lumi-border: #3A3A4C;
+            --lumi-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --lumi-sidebar-w: 240px;
+            --lumi-topbar-h: 56px;
+            --lumi-spacing-sm: 8px;
+            --lumi-spacing-md: 16px;
+            --lumi-spacing-lg: 24px;
+            --lumi-spacing-xl: 32px;
+            --lumi-radius: 4px;
+        }
+
+        /* Resets & Typography */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--lumi-font);
+            background-color: var(--lumi-bg-app);
+            color: var(--lumi-text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* App Layout Grid */
+        .app-container {
+            display: grid;
+            grid-template-areas:
+                "sidebar topbar"
+                "sidebar main";
+            grid-template-columns: var(--lumi-sidebar-w) 1fr;
+            grid-template-rows: var(--lumi-topbar-h) calc(100vh - var(--lumi-topbar-h));
+            height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        /* Sidebar Component */
+        .sidebar {
+            grid-area: sidebar;
+            background-color: var(--lumi-bg-app);
+            border-right: 1px solid var(--lumi-border);
+            display: flex;
+            flex-direction: column;
+            padding: var(--lumi-spacing-lg) 0;
+            z-index: 20;
+        }
+
+        .sidebar-header {
+            padding: 0 var(--lumi-spacing-lg) var(--lumi-spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lumi-logo {
+            width: 24px;
+            height: 24px;
+            background-color: var(--lumi-accent);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--lumi-bg-app);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .lumi-brand {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-group {
+            margin-bottom: var(--lumi-spacing-xl);
+        }
+
+        .nav-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--lumi-secondary);
+            padding: 0 var(--lumi-spacing-lg);
+            margin-bottom: var(--lumi-spacing-sm);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px var(--lumi-spacing-lg);
+            color: var(--lumi-text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: var(--lumi-text-primary);
+            background-color: var(--lumi-bg-card);
+        }
+
+        .nav-item.active {
+            color: var(--lumi-text-primary);
+            border-left-color: var(--lumi-accent);
+            background-color: var(--lumi-bg-card);
+            font-weight: 500;
+        }
+
+        /* Topbar Component */
+        .topbar {
+            grid-area: topbar;
+            background-color: var(--lumi-bg-app);
+            border-bottom: 1px solid var(--lumi-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--lumi-spacing-xl);
+            z-index: 10;
+        }
+
+        .topbar-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--lumi-spacing-md);
+            font-size: 13px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--lumi-success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--lumi-success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--lumi-success);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            grid-area: main;
+            padding: var(--lumi-spacing-xl);
+            overflow-y: auto;
+            background-color: var(--lumi-bg-app);
+            display: flex;
+            flex-direction: column;
+            gap: var(--lumi-spacing-xl);
+        }
+
+        /* Responsive Layouts */
+        .grid-kpi {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--lumi-spacing-md);
+        }
+
+        .grid-charts {
+            display: grid;
+            grid-template-columns: 60% calc(40% - var(--lumi-spacing-md));
+            gap: var(--lumi-spacing-md);
+        }
+
+        .grid-bottom {
+            display: grid;
+            grid-template-columns: 50% calc(50% - var(--lumi-spacing-md));
+            gap: var(--lumi-spacing-md);
+        }
+
+        /* Card Component */
+        .card {
+            background-color: var(--lumi-bg-card);
+            border: 1px solid var(--lumi-border);
+            border-radius: var(--lumi-radius);
+            padding: var(--lumi-spacing-lg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--lumi-spacing-md);
+            color: var(--lumi-text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* KPI Specifics */
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items:baseline;
+            gap: 4px;
+        }
+        
+        .kpi-unit {
+            font-size: 14px;
+            color: var(--lumi-secondary);
+        }
+
+        .kpi-change {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .kpi-change.positive { color: var(--lumi-danger); } 
+        .kpi-change.negative { color: var(--lumi-success); }
+        .kpi-change.neutral { color: var(--lumi-text-muted); }
+
+        .sparkline-container {
+            height: 40px;
+            margin-top: auto;
+            padding-top: var(--lumi-spacing-md);
+            width: 100%;
+            position: relative;
+        }
+
+        #kpi-energy .kpi-change { color: var(--lumi-success); }
+        #kpi-co2 .kpi-change { color: var(--lumi-success); }
+        #kpi-sensors .kpi-change { color: var(--lumi-success); }
+        #kpi-docs .kpi-change { color: var(--lumi-accent); } 
+
+        /* Chart Containers */
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        /* Table Component (Site List) */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--lumi-border);
+        }
+
+        .data-table th {
+            color: var(--lumi-secondary);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+        }
+
+        .data-table tr:hover td {
+            background-color: var(--lumi-bg-card-hover);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .cell-numeric {
+            font-family: var(--lumi-font);
+            font-variant-numeric: tabular-nums;
+            text-align: right !important;
+        }
+
+        /* Site Health Status */
+        .site-health {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .bg-ok { background: rgba(29, 158, 117, 0.15); color: var(--lumi-success); }
+        .bg-warn { background: rgba(187, 171, 140, 0.15); color: var(--lumi-accent); }
+        .bg-err { background: rgba(226, 75, 74, 0.15); color: var(--lumi-danger); }
+
+        /* Anomaly Feed */
+        .anomaly-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            max-height: 250px;
+        }
+
+        .anomaly-item {
+            display: grid;
+            grid-template-columns: 48px 1fr auto;
+            gap: 12px;
+            padding: 12px;
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--lumi-border);
+            border-left: 3px solid var(--lumi-danger);
+            border-radius: var(--lumi-radius);
+        }
+
+        .anomaly-item.warning { border-left-color: var(--lumi-accent); }
+        .anomaly-item.info { border-left-color: var(--lumi-secondary); }
+
+        .anomaly-time {
+            font-size: 12px;
+            color: var(--lumi-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .anomaly-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .anomaly-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .anomaly-desc {
+            font-size: 12px;
+            color: var(--lumi-text-muted);
+        }
+
+        .anomaly-value {
+            font-size: 14px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            align-self: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--lumi-bg-app); }
+        ::-webkit-scrollbar-thumb { background: var(--lumi-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--lumi-secondary); }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(12, 12, 14, 0.8);
+            z-index: 15;
+            backdrop-filter: blur(2px);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--lumi-text-primary);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Media Queries */
+        @media (max-width: 1200px) {
+            .grid-kpi { grid-template-columns: repeat(2, 1fr); }
+            .grid-charts, .grid-bottom {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 0 1fr;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: calc(var(--lumi-sidebar-w) * -1);
+                width: var(--lumi-sidebar-w);
+                transition: left 0.3s ease;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .sidebar-overlay.open {
+                display: block;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .grid-kpi { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Sidebar -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="lumi-logo">L</div>
+                <div class="lumi-brand">Lumi</div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">Intelligence</div>
+                <a href="#" class="nav-item active">Overview</a>
+                <a href="#" class="nav-item">Site Analytics</a>
+                <a href="#" class="nav-item">Emissions Tracking</a>
+                <a href="#" class="nav-item">Predictive Models</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">Operations</div>
+                <a href="#" class="nav-item">Anomaly Feed</a>
+                <a href="#" class="nav-item">Sensor Fleet</a>
+                <a href="#" class="nav-item">Document Parsing</a>
+            </div>
+
+            <div class="nav-group" style="margin-top: auto;">
+                <div class="nav-title">Settings</div>
+                <a href="#" class="nav-item">Configuration</a>
+                <a href="#" class="nav-item">User Management</a>
+            </div>
+        </aside>
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="mobile-toggle" id="mobile-toggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+                <div class="topbar-title">Facility Command Center</div>
+            </div>
+            
+            <div class="topbar-actions">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    System Nominal
+                </div>
+                <!-- Time component updated via JS -->
+                <div id="clock" style="color: var(--lumi-secondary); font-variant-numeric: tabular-nums;">--:--:--</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- KPI Row -->
+            <section class="grid-kpi">
+                <!-- Energy -->
+                <div class="card" id="kpi-energy">
+                    <div class="card-header">
+                        <span>Total Energy Consumed</span>
+                        <span>24h</span>
+                    </div>
+                    <div class="kpi-value"><span class="counter" data-target="14250">0</span> <span class="kpi-unit">kWh</span></div>
+                    <div class="kpi-change negative">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                        12.4% vs prev
+                    </div>
+                    <div class="sparkline-container">
+                        <canvas id="spark-energy"></canvas>
+                    </div>
+                </div>
+
+                <!-- CO2 -->
+                <div class="card" id="kpi-co2">
+                    <div class="card-header">
+                        <span>Est. CO₂ Emissions</span>
+                        <span>24h</span>
+                    </div>
+                    <div class="kpi-value"><span class="counter" data-target="2840">0</span> <span class="kpi-unit">kg</span></div>
+                    <div class="kpi-change negative">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                        8.1% vs prev
+                    </div>
+                    <div class="sparkline-container">
+                        <canvas id="spark-co2"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sensors -->
+                <div class="card" id="kpi-sensors">
+                    <div class="card-header">
+                        <span>Active IoT Sensors</span>
+                        <span>Live</span>
+                    </div>
+                    <div class="kpi-value"><span class="counter" data-target="342">0</span> <span class="kpi-unit">/ 350</span></div>
+                    <div class="kpi-change">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        2 reconnected
+                    </div>
+                    <div class="sparkline-container">
+                        <canvas id="spark-sensors"></canvas>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="card" id="kpi-docs">
+                    <div class="card-header">
+                        <span>Docs Processed</span>
+                        <span>Total</span>
+                    </div>
+                    <div class="kpi-value"><span class="counter" data-target="1284">0</span> <span class="kpi-unit">files</span></div>
+                    <div class="kpi-change">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        45 today
+                    </div>
+                    <div class="sparkline-container">
+                        <canvas id="spark-docs"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Row 60/40 -->
+            <section class="grid-charts">
+                <div class="card">
+                    <div class="card-header">
+                        <span>Energy Consumption Forecast (kWh)</span>
+                        <span>Next 48 Hours</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="mainAreaChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span>Consumption by Site</span>
+                        <span>MTD Breakdown</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Row 50/50 -->
+            <section class="grid-bottom">
+                <div class="card">
+                    <div class="card-header">
+                        <span>Site Overview</span>
+                        <span>Real-time</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Facility Location</th>
+                                    <th>Status</th>
+                                    <th class="cell-numeric">Pwr Draw (kW)</th>
+                                    <th class="cell-numeric">Avg Temp (°C)</th>
+                                    <th class="cell-numeric">CO₂ Est (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Usine Sfax - Zone Industrielle</td>
+                                    <td><span class="site-health bg-err">High Load</span></td>
+                                    <td class="cell-numeric">845.2</td>
+                                    <td class="cell-numeric">28.4</td>
+                                    <td class="cell-numeric">1,240</td>
+                                </tr>
+                                <tr>
+                                    <td>Raffinerie Bizerte</td>
+                                    <td><span class="site-health bg-ok">Nominal</span></td>
+                                    <td class="cell-numeric">620.8</td>
+                                    <td class="cell-numeric">24.1</td>
+                                    <td class="cell-numeric">890</td>
+                                </tr>
+                                <tr>
+                                    <td>Entrepôt de Ben Arous</td>
+                                    <td><span class="site-health bg-warn">Warning</span></td>
+                                    <td class="cell-numeric">310.5</td>
+                                    <td class="cell-numeric">26.8</td>
+                                    <td class="cell-numeric">410</td>
+                                </tr>
+                                <tr>
+                                    <td>Site Lyon - Vénissieux</td>
+                                    <td><span class="site-health bg-ok">Nominal</span></td>
+                                    <td class="cell-numeric">420.0</td>
+                                    <td class="cell-numeric">22.5</td>
+                                    <td class="cell-numeric">560</td>
+                                </tr>
+                                <tr>
+                                    <td>Centre R&D Tunis</td>
+                                    <td><span class="site-health bg-ok">Nominal</span></td>
+                                    <td class="cell-numeric">145.2</td>
+                                    <td class="cell-numeric">21.0</td>
+                                    <td class="cell-numeric">210</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>Live Anomaly Detection Feed</span>
+                        <span>Powered by AI Model</span>
+                    </div>
+                    <ul class="anomaly-list">
+                        <li class="anomaly-item">
+                            <div class="anomaly-time">10:42<br>AM</div>
+                            <div class="anomaly-details">
+                                <span class="anomaly-title">Unusual Power Spike detected</span>
+                                <span class="anomaly-desc">Usine Sfax - Compressor Line B</span>
+                            </div>
+                            <div class="anomaly-value" style="color: var(--lumi-danger);">+42%</div>
+                        </li>
+                        <li class="anomaly-item warning">
+                            <div class="anomaly-time">10:15<br>AM</div>
+                            <div class="anomaly-details">
+                                <span class="anomaly-title">HVAC Inefficiency Warning</span>
+                                <span class="anomaly-desc">Entrepôt de Ben Arous - Zone 3</span>
+                            </div>
+                            <div class="anomaly-value" style="color: var(--lumi-accent);">+15%</div>
+                        </li>
+                        <li class="anomaly-item info">
+                            <div class="anomaly-time">09:30<br>AM</div>
+                            <div class="anomaly-details">
+                                <span class="anomaly-title">New PDF Report Parsed</span>
+                                <span class="anomaly-desc">STEG_Facture_Janvier_2026.pdf</span>
+                            </div>
+                            <div class="anomaly-value" style="color: var(--lumi-secondary);">Ready</div>
+                        </li>
+                        <li class="anomaly-item info">
+                            <div class="anomaly-time">08:12<br>AM</div>
+                            <div class="anomaly-details">
+                                <span class="anomaly-title">Sensor Calibration Complete</span>
+                                <span class="anomaly-desc">Raffinerie Bizerte - Node 42</span>
+                            </div>
+                            <div class="anomaly-value" style="color: var(--lumi-secondary);">OK</div>
+                        </li>
+                        <li class="anomaly-item">
+                            <div class="anomaly-time">02:14<br>AM</div>
+                            <div class="anomaly-details">
+                                <span class="anomaly-title">Night-time Baseline Exceeded</span>
+                                <span class="anomaly-desc">Site Lyon - Server Room Cooling</span>
+                            </div>
+                            <div class="anomaly-value" style="color: var(--lumi-danger);">+22%</div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Design Token Access for Charts
+        const style = getComputedStyle(document.body);
+        const colors = {
+            bg: style.getPropertyValue('--lumi-bg-app').trim(),
+            card: style.getPropertyValue('--lumi-bg-card').trim(),
+            accent: style.getPropertyValue('--lumi-accent').trim(),
+            secondary: style.getPropertyValue('--lumi-secondary').trim(),
+            text: style.getPropertyValue('--lumi-text-primary').trim(),
+            textMuted: style.getPropertyValue('--lumi-text-muted').trim(),
+            danger: style.getPropertyValue('--lumi-danger').trim(),
+            success: style.getPropertyValue('--lumi-success').trim(),
+            border: style.getPropertyValue('--lumi-border').trim(),
+            font: style.getPropertyValue('--lumi-font').trim()
+        };
+
+        // Chart.js Global Defaults
+        Chart.defaults.color = colors.textMuted;
+        Chart.defaults.font.family = colors.font;
+        Chart.defaults.scale.grid.color = colors.border;
+        Chart.defaults.plugins.tooltip.backgroundColor = colors.card;
+        Chart.defaults.plugins.tooltip.titleColor = colors.text;
+        Chart.defaults.plugins.tooltip.bodyColor = colors.textMuted;
+        Chart.defaults.plugins.tooltip.borderColor = colors.border;
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+
+        // Common sparkline options
+        const sparklineOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            elements: { point: { radius: 0 } },
+            layout: { padding: 0 }
+        };
+
+        // Data Generators
+        const generateData = (pts, min, max) => Array.from({length:pts}, () => Math.floor(Math.random() * (max - min + 1)) + min);
+        
+        // Initialize Sparklines
+        const initSparkline = (id, data, color) => {
+            const ctx = document.getElementById(id).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(24).fill(''),
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 1.5,
+                        tension: 0.3
+                    }]
+                },
+                options: sparklineOptions
+            });
+        };
+
+        // Start Sparklines
+        initSparkline('spark-energy', generateData(24, 400, 800), colors.success);
+        initSparkline('spark-co2', generateData(24, 100, 250), colors.success);
+        initSparkline('spark-sensors', generateData(24, 340, 345), colors.textMuted);
+        initSparkline('spark-docs', generateData(24, 0, 5).map(v => v===0 ? 0 : v), colors.accent);
+
+        // Main Area Chart (Historical + Forecast)
+        const ctxMain = document.getElementById('mainAreaChart').getContext('2d');
+        
+        // Create gradient
+        const gradient = ctxMain.createLinearGradient(0, 0, 0, 280);
+        gradient.addColorStop(0, `${colors.accent}40`); 
+        gradient.addColorStop(1, `${colors.bg}00`);
+
+        const labels = Array.from({length: 48}, (_, i) => `${i}:00`.padStart(5, '0'));
+        const histData = generateData(24, 500, 900);
+        const forecastData = Array(24).fill(null).concat(generateData(24, 600, 950));
+        
+        // Connect the lines
+        forecastData[23] = histData[23];
+
+        new Chart(ctxMain, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Historical',
+                        data: histData,
+                        borderColor: colors.text,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        elements: { point: { radius: 0, hitRadius: 10 } }
+                    },
+                    {
+                        label: 'AI Forecast',
+                        data: forecastData,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        elements: { point: { radius: 0, hitRadius: 10 } }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true } }
+                },
+                scales: {
+                    y: { beginAtZero: true, border: { dash: [4, 4] } },
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
+                }
+            }
+        });
+
+        // Donut Chart
+        const ctxDonut = document.getElementById('donutChart').getContext('2d');
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Usine Sfax', 'Raffinerie Bizerte', 'Site Lyon', 'Entrepôt Ben Arous', 'Centre R&D Tunis'],
+                datasets: [{
+                    data: [35, 25, 20, 15, 5],
+                    backgroundColor: [
+                        colors.text,
+                        colors.secondary,
+                        colors.border,
+                        colors.accent,
+                        '#1f1f2e'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15 } }
+                }
+            }
+        });
+
+        // Count-up Animation
+        const runCounters = () => {
+            const counters = document.querySelectorAll('.counter');
+            const speed = 40;
+
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const inc = target / speed;
+
+                const updateCount = () => {
+                    const current = +counter.innerText.replace(/,/g, '');
+                    if (current < target) {
+                        counter.innerText = Math.ceil(current + inc).toLocaleString();
+                        setTimeout(updateCount, 30);
+                    } else {
+                        counter.innerText = target.toLocaleString();
+                    }
+                };
+
+                updateCount();
+            });
+        };
+
+        // Live Clock
+        const updateClock = () => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+        };
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Mobile Sidebar Toggle
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        };
+
+        mobileToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Run animations on load
+        window.addEventListener('DOMContentLoaded', runCounters);
+
+    </script>
+</body>
+</html>

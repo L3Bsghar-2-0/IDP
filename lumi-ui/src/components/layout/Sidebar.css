@@ -1,0 +1,100 @@
+.sidebar {
+  position: relative;
+  height: 100%;
+  background-color: var(--lumi-bg-app);
+  border-right: 1px solid var(--lumi-border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--lumi-space-lg) 0;
+  z-index: 20;
+  overflow-y: auto;
+}
+
+/* Mobile: off-canvas */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0;
+    left: calc(var(--lumi-sidebar-w) * -1);
+    width: var(--lumi-sidebar-w);
+    transition: left 0.28s ease;
+  }
+  .sidebar--open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+}
+
+/* Overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(12,12,14,0.75);
+  z-index: 15;
+}
+@media (max-width: 900px) {
+  .sidebar-overlay { display: block; }
+}
+
+/* Logo + brand */
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--lumi-space-lg) var(--lumi-space-lg);
+  border-bottom: 1px solid var(--lumi-border);
+  margin-bottom: var(--lumi-space-lg);
+}
+.sidebar__logo {
+  width: 26px; height: 26px;
+  background-color: var(--lumi-accent);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--lumi-bg-app);
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.sidebar__brand {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--lumi-text-primary);
+}
+
+/* Nav */
+.sidebar__nav { flex: 1; }
+
+.nav-group {
+  margin-bottom: var(--lumi-space-xl);
+}
+.nav-group__title {
+  font-size: var(--lumi-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--lumi-secondary);
+  padding: 0 var(--lumi-space-lg);
+  margin-bottom: var(--lumi-space-sm);
+}
+
+/* Nav items */
+.nav-item {
+  display: block;
+  padding: 9px var(--lumi-space-lg);
+  color: var(--lumi-text-muted);
+  text-decoration: none;
+  font-size: var(--lumi-font-size-sm);
+  border-left: 3px solid transparent;
+  transition: color 0.18s, background-color 0.18s, border-color 0.18s;
+}
+.nav-item:hover {
+  color: var(--lumi-text-primary);
+  background-color: var(--lumi-bg-card);
+}
+.nav-item--active {
+  color: var(--lumi-text-primary);
+  border-left-color: var(--lumi-accent);
+  background-color: var(--lumi-bg-card);
+  font-weight: 500;
+}
