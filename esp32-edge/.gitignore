@@ -1,0 +1,15 @@
+# PlatformIO
+.pio/
+.vscode/
+.pioenvs/
+.piolibdeps/
+
+# Build artefacts
+*.elf
+*.bin
+*.map
+
+# Local credential overrides — copy config.h to config.local.h if you want
+# to keep secrets out of git, then add `#include "config.local.h"` at the top
+# of config.h.
+src/config.local.h
