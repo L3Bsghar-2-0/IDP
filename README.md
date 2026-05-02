@@ -1166,26 +1166,3 @@ If you maintain this project, add a LICENSE file to the repository root (e.g., `
 
 ---
 
-## Verification Checklist
-
-This README was synthesized from a systematic codebase scan. The following claims are directly traceable to source files:
-
-- ✅ Firmware version, platform pinning, and dependencies → `platformio.ini`
-- ✅ Hardware pins (GPIO 4, GPIO 34) and sensor specs → `config.h`, `README.md`
-- ✅ MQTT broker URL and ports → `config.h`, `app/config.py`, `.env.example`
-- ✅ FastAPI endpoints → `app/api/router.py`, `tests/test_api.py`
-- ✅ Docker compose services and ports → `docker-compose.yml`, `Dockerfile`
-- ✅ Database schema and tables → `sql/001_init.sql`, `sql/002_aggregates.sql`, `sql/003_retention.sql`
-- ✅ Data flow and startup sequence → `app/main.py`, `src/main.cpp`, `app/mqtt/client.py`, `app/processing/pipeline.py`
-- ✅ MQTT topic hierarchy → `app/mqtt/client.py`, `esp32-edge/README.md`
-- ✅ Configuration defaults and env vars → `app/config.py`, `.env.example`
-- ✅ Known gaps and roadmap items → `esp32-edge/README.md`, `esp32-edge/README_CHANGELOG.md`
-- ✅ Test coverage → `tests/test_api.py`, `tests/test_pipeline.py`
-- ✅ Simulator features → `captor-simulator/README.md`, `config.yaml`
-- ✅ Deployment instructions → `docker-compose.yml`, `platformio.ini`
-
-**Unverifiable claims (and how they're marked):**
-- ⚠️ License terms → flagged with callout; no LICENSE file exists
-- ⚠️ Future roadmap items → only documented TODOs included; no speculation
-- ⚠️ Performance metrics — no benchmarks in codebase; omitted
-
