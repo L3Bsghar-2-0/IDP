@@ -17,6 +17,7 @@ import numpy as np
 import paho.mqtt.client as mqtt
 
 from .base import BaseSensor, FailureScheduler
+from .otasim import OTASimulator
 
 logger = logging.getLogger(__name__)
 
@@ -275,6 +276,9 @@ class VirtualDevice:
     failure_scheduler: Optional[FailureScheduler] = None
     simulation_speed: float = 1.0
     aggregate_window_s: float = 1.0
+    ota_simulator: Optional[OTASimulator] = None
+    ota_enabled: bool = False
+    ota_check_interval_s: float = 3600.0
 
     def __post_init__(self) -> None:
         self._running = False
@@ -284,6 +288,11 @@ class VirtualDevice:
             s.sensor_id: [] for s in self.sensors if s.sample_rate_hz > 10.0
         }
         self._hf_last_flush: Dict[str, float] = {k: time.monotonic() for k in self._hf_buffers}
+        self._ota_last_check = time.time()
+
+        # Initialize OTA simulator if enabled
+        if self.ota_enabled and self.ota_simulator:
+            self.ota_simulator.initialize_device(self.device_id, "1.0.0")
 
     async def start(self) -> None:
         self._running = True
@@ -291,6 +300,10 @@ class VirtualDevice:
 
         for sensor in self.sensors:
             self._tasks.append(asyncio.create_task(self._sensor_loop(sensor)))
+
+        # Start OTA loop if enabled
+        if self.ota_enabled and self.ota_simulator:
+            self._tasks.append(asyncio.create_task(self._ota_loop()))
 
     async def stop(self) -> None:
         self._running = False
@@ -363,6 +376,41 @@ class VirtualDevice:
                     await self.publisher.publish(sensor.sensor_id, reading)
 
             await asyncio.sleep(interval_s / speed)
+
+    async def _ota_loop(self) -> None:
+        """Simulate OTA update checks and operations."""
+        while self._running:
+            if self.ota_simulator:
+                # Tick the OTA state machine
+                event = self.ota_simulator.tick(self.device_id)
+                if event:
+                    # Publish OTA event
+                    await self._publish_ota_event(event)
+
+            await asyncio.sleep(1.0)
+
+    async def _publish_ota_event(self, event: Dict[str, Any]) -> None:
+        """Publish OTA event to the appropriate MQTT topic."""
+        event_type = event.get("event", "unknown")
+        device_id = event.get("device_id", self.device_id)
+
+        # Build OTA status topic
+        ota_topic = (
+            f"tenants/{self.tenant}/sites/{self.site}/devices/{device_id}/ota/status"
+        )
+
+        # Include timestamp
+        payload = {
+            "ts": int(time.time()),
+            **event,
+        }
+
+        encoded = json.dumps(payload, separators=(",", ":"), ensure_ascii=True)
+        if isinstance(self.publisher, MQTTPublisher):
+            await self.publisher.publish("ota", payload)
+        else:
+            # For other publishers, just log
+            logger.info(f"[OTA] {device_id}: {event_type} - {encoded}")
 
 
 async def run_devices(devices: List[VirtualDevice]) -> None:

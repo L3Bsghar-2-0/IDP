@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 from .base import BaseSensor, FailureEvent, FailureScheduler
 from .device import FilePublisher, MQTTPublisher, QueuePublisher, StdoutPublisher, VirtualDevice, run_devices
 from .sensors import build_sensor
+from .otasim import OTASimulator
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,10 +56,18 @@ class SimulationCfg(BaseModel):
     aggregate_window_s: float = 1.0
 
 
+class OTACfg(BaseModel):
+    enabled: bool = False
+    update_interval_s: int = 3600
+    failure_rate: float = 0.05
+    available_versions: List[str] = Field(default_factory=lambda: ["1.0.0", "1.0.1", "1.1.0", "2.0.0"])
+
+
 class RootCfg(BaseModel):
     devices: List[DeviceCfg]
     simulation: SimulationCfg = Field(default_factory=SimulationCfg)
     mqtt: MQTTCfg = Field(default_factory=MQTTCfg)
+    ota: OTACfg = Field(default_factory=OTACfg)
 
 
 def load_config(path: str) -> RootCfg:
@@ -104,6 +113,17 @@ async def make_devices(cfg: RootCfg, mode: str, file_output: str) -> List[Virtua
     now_ms = BaseSensor.now_ms()
     devices: List[VirtualDevice] = []
 
+    # Create OTA simulator if enabled
+    ota_sim = None
+    if cfg.ota.enabled:
+        ota_sim = OTASimulator(
+            enabled=cfg.ota.enabled,
+            update_interval_s=cfg.ota.update_interval_s,
+            failure_rate=cfg.ota.failure_rate,
+            available_versions=cfg.ota.available_versions,
+        )
+        logger.info(f"[OTA] simulator initialized (failure_rate={cfg.ota.failure_rate})")
+
     shared_queue: Optional[asyncio.Queue[Dict[str, Any]]] = None
     if mode == "queue":
         shared_queue = asyncio.Queue(maxsize=10000)
@@ -145,6 +165,9 @@ async def make_devices(cfg: RootCfg, mode: str, file_output: str) -> List[Virtua
                 failure_scheduler=scheduler,
                 simulation_speed=cfg.simulation.speed_multiplier,
                 aggregate_window_s=cfg.simulation.aggregate_window_s,
+                ota_simulator=ota_sim,
+                ota_enabled=cfg.ota.enabled,
+                ota_check_interval_s=cfg.ota.update_interval_s,
             )
         )
     return devices

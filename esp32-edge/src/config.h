@@ -13,8 +13,8 @@
 // ── HiveMQ Cloud broker ──────────────────────────────────────────────
 #define MQTT_HOST     "e9a3ce30ae3749ab880436548931b5d0.s1.eu.hivemq.cloud"
 #define MQTT_PORT     8883                       // MQTT over TLS (TCP)
-#define MQTT_USERNAME "PLACEHOLDER_DEVICE_USERNAME"
-#define MQTT_PASSWORD "PLACEHOLDER_DEVICE_PASSWORD"
+#define MQTT_USERNAME "esp32-device"
+#define MQTT_PASSWORD "esp32-device"
 
 // Note: port 8884 is the same broker's MQTT-over-WebSocket endpoint,
 // reserved for browser clients. The ESP32 firmware uses 8883 (TCP/TLS)
@@ -30,7 +30,20 @@
 // ── Firmware version (reported in payloads + diagnostics) ────────────
 #define FW_VERSION    "1.0.0"
 
-// ── Sensor pins (ESP32) ───────────────────────────────────────────────
+// ── OTA (Over-The-Air) update settings ───────────────────────────────
+// Polling interval (in seconds) for checking updates. Set to 0 to disable polling.
+#define OTA_POLLING_INTERVAL_SECONDS 3600    // 1 hour default
+
+// Boot threshold for auto-rollback: if device fails to boot this many times
+// in a row, it automatically reverts to the previous firmware partition.
+#define OTA_ROLLBACK_BOOT_THRESHOLD  3
+
+// HMAC-SHA256 secret for firmware signature verification.
+// IMPORTANT: Change this to your own secret and pre-share with OTA backend.
+// Keep this synchronized across all devices. 32 hex characters (16 bytes).
+#define OTA_SIGNATURE_KEY "0123456789abcdef0123456789abcdef"
+
+// Sensor pins (ESP32) ───────────────────────────────────────────────
 #define DHT22_PIN     4
 #define MQ2_ADC_PIN   34
 

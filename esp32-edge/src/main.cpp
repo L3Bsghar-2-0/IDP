@@ -17,6 +17,7 @@
 #include "mqttmgr.h"
 #include "blesvc.h"
 #include "diag.h"
+#include "ota.h"
 #include "sensor_dht22.h"
 #include "sensor_mq2.h"
 
@@ -86,6 +87,9 @@ void setup() {
     // the loop's first tick().
     mqttmgr::begin(clientId);
 
+    // OTA manager (after MQTT so it can subscribe to update topics)
+    ota::begin();
+
     diag::begin();
 
     // Watchdog comes online last so a slow setup() can't trip it.
@@ -109,6 +113,7 @@ void loop() {
     }
 
     mqttmgr::tick();
+    ota::tick();
     dht22::tick();
     mq2::tick();
     diag::tick();

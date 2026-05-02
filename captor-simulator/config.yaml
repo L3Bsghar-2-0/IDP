@@ -8,6 +8,16 @@ mqtt:
   port: null
   use_tls: true
 
+ota:
+  enabled: false
+  update_interval_s: 3600
+  failure_rate: 0.05
+  available_versions:
+    - "1.0.0"
+    - "1.0.1"
+    - "1.1.0"
+    - "2.0.0"
+
 devices:
   - device_id: "floor_01"
     site: "tunis_factory"

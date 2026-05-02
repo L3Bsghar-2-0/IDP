@@ -8,6 +8,7 @@
 #include <time.h>
 #include "config.h"
 #include "mqttmgr.h"
+#include "ota.h"
 #include "sensor_dht22.h"
 #include "sensor_mq2.h"
 
@@ -57,6 +58,14 @@ static void publishDiagnostics() {
     errs["dht22"]    = dht22::errorCount();
     errs["mq2"]      = mq2::errorCount();
     errs["mqtt_pub"] = mqttmgr::pubFailCount();
+    errs["ota"]      = ota::errorCount();
+
+    // OTA diagnostics
+    JsonObject ota_obj = doc["ota"].to<JsonObject>();
+    ota_obj["state"]      = ota::stateName(ota::getState());
+    ota_obj["version"]    = ota::currentVersion();
+    ota_obj["boot_count"] = ota::bootCount();
+    ota_obj["updates"]    = ota::updateCount();
 
     String payload;
     serializeJson(doc, payload);
