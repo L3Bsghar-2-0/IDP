@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile C:/IDP/reteqfusion-server/subscriber.py)",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in ['subscriber.py','parser.py','display.py','stats.py']]; print\\('all files parse OK'\\)\")",
+      "Bash(git -C \"C:/IDP\" branch -a)",
+      "Bash(git -C \"C:/IDP\" log --oneline -20)",
+      "Bash(docker compose *)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s http://localhost:8000/api/v1/devices)",
+      "Bash(curl -s -o /dev/null -w \"Grafana HTTP: %{http_code}\\\\n\" http://localhost:3000/api/health)",
+      "Bash(curl -s -o /dev/null -w \"App OpenAPI HTTP: %{http_code}\\\\n\" http://localhost:8000/docs)",
+      "Bash(docker exec *)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f'    {d[\\\\\"device_id\\\\\"]:<20} status={d[\\\\\"status\\\\\"]} sensors={d[\\\\\"sensor_types\\\\\"]}'\\) for d in data]\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs)",
+      "Bash(echo \"  GET /docs            → $\\(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" 'http://localhost:8000/api/v1/sensors?limit=1')",
+      "Bash(echo \"  GET /api/v1/sensors  → $\\(curl -s -o /dev/null -w \"%{http_code}\" 'http://localhost:8000/api/v1/sensors?limit=1'\\)\")"
+    ]
+  }
+}
