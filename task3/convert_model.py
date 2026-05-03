@@ -109,7 +109,7 @@ def main():
     # 1. FULL-PRECISION BASELINE
     print("Loading original Keras model...")
     try:
-        model = tf.keras.models.load_model(args.model)
+        model = tf.keras.models.load_model(args.model, compile=False)
     except Exception as e:
         print(f"ERROR: Failed to load model: {e}")
         sys.exit(1)
