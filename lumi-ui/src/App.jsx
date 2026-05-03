@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/layout/Layout';
-import Sidebar from './components/layout/Sidebar';
-import Topbar from './components/layout/Topbar';
+import Layout    from './components/layout/Layout';
+import Sidebar   from './components/layout/Sidebar';
+import Topbar    from './components/layout/Topbar';
 import Dashboard from './pages/Dashboard';
+import { useDumData } from './hooks/useDumData';
 
 // Placeholder pages for router completeness
 const Placeholder = ({ title }) => (
@@ -21,6 +22,7 @@ const Placeholder = ({ title }) => (
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const dum = useDumData();                    // single WS connection for the whole app
 
   return (
     <BrowserRouter>
@@ -35,11 +37,14 @@ export default function App() {
           <Topbar
             title="Facility Command Center"
             onMenuClick={() => setSidebarOpen((o) => !o)}
+            dumStatus={dum.status}
+            dumSummary={dum.summary}
+            dumFetchedAt={dum.fetchedAt}
           />
         }
       >
         <Routes>
-          <Route path="/"          element={<Dashboard />} />
+          <Route path="/"          element={<Dashboard dum={dum} />} />
           <Route path="/sites"     element={<Placeholder title="Site Analytics" />} />
           <Route path="/emissions" element={<Placeholder title="Emissions Tracking" />} />
           <Route path="/models"    element={<Placeholder title="Predictive Models" />} />
