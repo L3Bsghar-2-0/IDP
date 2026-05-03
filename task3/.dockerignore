@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+.env
+.venv
+venv
+.git
+.vscode
+.idea
+node_modules
+models/*.h5
+results/
+mosquitto/data
+mosquitto/log
+*.tflite
+lumi-ui/node_modules

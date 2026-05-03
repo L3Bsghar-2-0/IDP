@@ -1,0 +1,7 @@
+# Dockerfile.trainer — trains the TinyML MLP model
+FROM idp-base:latest
+
+COPY train_model.py /workspace/train_model.py
+
+ENTRYPOINT ["python", "train_model.py"]
+CMD ["--data_path", "/data/sensor_data.csv", "--window_size", "10", "--output_dir", "/models"]

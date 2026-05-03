@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+!.env.example
+!reteqfusion-server/.env.example
+
+# ML artifacts
+*.h5
+*.tflite
+*.pkl
+models/
+
+# Generated outputs
+results/
+simulation_results.json
+latency_report.json
+training_report.txt
+quantization_report.txt
+held_out_test.csv
+model_data.h
+
+# Docker volumes
+mosquitto/data/
+mosquitto/log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/

@@ -1,0 +1,63 @@
+# ═══════════════════════════════════════════════════════════
+#  Re·Tech Fusion — TinyML Pipeline: docker-compose.yml
+# ═══════════════════════════════════════════════════════════
+#  Usage:
+#    1. docker compose build base         (once, builds idp-base:latest)
+#    2. docker compose up --build         (runs train → convert → simulate)
+#
+#  Services exit sequentially via depends_on.
+#  Outputs land in the bind-mounted  ./models/  and  ./results/  dirs.
+# ═══════════════════════════════════════════════════════════
+
+services:
+  # ── Shared base image (built once, cached) ───────────────
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+    image: idp-base:latest
+    # This service exists only to build the base image;
+    # it exits immediately.
+    command: ["echo", "base image ready"]
+
+  # ── Stage 1: Train the MLP model ─────────────────────────
+  trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile.trainer
+    image: idp-trainer:latest
+    depends_on:
+      base:
+        condition: service_completed_successfully
+    volumes:
+      - ./data:/data:ro               # Input CSV mounted read-only
+      - ./models:/models              # Outputs: model.h5, scaler.pkl, held_out_test.csv
+    env_file: .env
+
+  # ── Stage 2: Quantize to INT8 TFLite + C header ─────────
+  converter:
+    build:
+      context: .
+      dockerfile: Dockerfile.converter
+    image: idp-converter:latest
+    depends_on:
+      trainer:
+        condition: service_completed_successfully
+    volumes:
+      - ./models:/models              # Reads model.h5, writes model_int8.tflite
+      - ./esp32-edge/src:/firmware     # Writes model_data.h directly into firmware tree
+    env_file: .env
+
+  # ── Stage 3: PC-side TFLite emulation ────────────────────
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    image: idp-simulator:latest
+    depends_on:
+      converter:
+        condition: service_completed_successfully
+    volumes:
+      - ./models:/models:ro           # Reads model_int8.tflite + held_out_test.csv
+      - ./results:/results            # Outputs: simulation_results.json, latency_report.json
+    env_file: .env

@@ -1,0 +1,7 @@
+# Dockerfile.converter — INT8 quantization + C header generation
+FROM idp-base:latest
+
+COPY convert_model.py /workspace/convert_model.py
+
+ENTRYPOINT ["python", "convert_model.py"]
+CMD ["--model", "/models/model.h5", "--data_path", "/models/held_out_test.csv", "--scaler_path", "/models/scaler.pkl", "--output_dir", "/models", "--header_dir", "/firmware"]

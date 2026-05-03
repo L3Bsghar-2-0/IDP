@@ -1,0 +1,7 @@
+# Dockerfile.simulator — PC-side TFLite emulation + anomaly detection
+FROM idp-base:latest
+
+COPY simulate.py /workspace/simulate.py
+
+ENTRYPOINT ["python", "simulate.py"]
+CMD ["--mode", "emulate", "--model", "/models/model_int8.tflite", "--data", "/models/held_out_test.csv", "--scaler_path", "/models/scaler.pkl", "--output_dir", "/results"]
