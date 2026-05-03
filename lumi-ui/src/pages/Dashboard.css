@@ -1,3 +1,18 @@
+/* ── Model status strip ──────────────────────────────────────────────────── */
+.dashboard-status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--lumi-space-md);
+  margin-bottom: var(--lumi-space-md);
+}
+
+.dashboard-status-bar__meta {
+  font-size: var(--lumi-font-size-xs);
+  color: var(--lumi-text-muted);
+  letter-spacing: 0.3px;
+}
+
+/* ── Dashboard grid layouts ──────────────────────────────────────────────── */
 /* Dashboard grid layouts */
 
 .grid-kpi {

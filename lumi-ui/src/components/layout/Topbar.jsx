@@ -1,4 +1,5 @@
 import { useLiveClock } from '../../hooks/useLiveClock';
+import ModelBadge       from '../badges/ModelBadge';
 import './Topbar.css';
 
 const MenuIcon = () => (
@@ -8,7 +9,7 @@ const MenuIcon = () => (
   </svg>
 );
 
-export default function Topbar({ title, onMenuClick }) {
+export default function Topbar({ title, onMenuClick, dumStatus = 'connecting', dumSummary = null, dumFetchedAt = null }) {
   const time = useLiveClock();
 
   return (
@@ -21,10 +22,7 @@ export default function Topbar({ title, onMenuClick }) {
       </div>
 
       <div className="topbar__right">
-        <div className="topbar__status">
-          <span className="topbar__status-dot" />
-          System Nominal
-        </div>
+        <ModelBadge status={dumStatus} fetchedAt={dumFetchedAt} summary={dumSummary} />
         <span className="topbar__clock">{time}</span>
       </div>
     </header>

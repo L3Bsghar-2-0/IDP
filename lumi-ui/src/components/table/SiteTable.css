@@ -71,3 +71,18 @@
 .badge--ok   { background: rgba(29,158,117,0.15); color: var(--lumi-success); }
 .badge--warn { background: rgba(187,171,140,0.15); color: var(--lumi-accent); }
 .badge--err  { background: rgba(226,75,74,0.15);  color: var(--lumi-danger); }
+
+/* Model-down overlay for the table scroll area */
+.table-model-down {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 12, 14, 0.65);
+  backdrop-filter: blur(3px);
+  color: var(--lumi-danger);
+  font-size: var(--lumi-font-size-sm);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}

@@ -82,3 +82,16 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Empty / offline states */
+.feed-empty,
+.feed-model-down {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  font-size: var(--lumi-font-size-sm);
+}
+.feed-empty      { color: var(--lumi-text-muted); }
+.feed-model-down { color: var(--lumi-danger); }
